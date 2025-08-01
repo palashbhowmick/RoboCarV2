@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        text-align: center;
+        font-family: sans-serif;
+        margin: 0;
+        padding: 1em;
+      }
+      button {
+        width: 80px;
+        height: 80px;
+        font-size: 2em;
+        margin: 10px;
+        border-radius: 10px;
+        border: none;
+        background-color: #4caf50;
+        color: white;
+        transition: background-color 0.2s;
+      }
+      button:active,
+      .pressed {
+        background-color: #2e7d32;
+      }
+      #controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .row {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Palash's RoboCar v2</h2>
+    <div id="controls">
+      <div class="row">
+        <button id="fwd">&#x2B06;</button>
+        <!-- Up -->
+      </div>
+      <div class="row">
+        <button id="left">&#x2B05;</button>
+        <!-- Left -->
+        <button id="stop">&#x25A0;</button>
+        <!-- Stop -->
+        <button id="right">&#x27A1;</button>
+        <!-- Right -->
+      </div>
+      <div class="row">
+        <button id="bkw">&#x2B07;</button>
+        <!-- Down -->
+      </div>
+    </div>
+
+    <script>
+      function sendCommand(cmd) {
+        fetch('/?a=' + cmd).catch(console.error);
+      }
+
+      function setupButton(id, command) {
+        const btn = document.getElementById(id);
+
+        const start = () => {
+          btn.classList.add('pressed');
+          sendCommand(command);
+        };
+
+        const stop = () => {
+          btn.classList.remove('pressed');
+          sendCommand('stop');
+        };
+
+        btn.addEventListener('mousedown', start);
+        btn.addEventListener('touchstart', start);
+        btn.addEventListener('mouseup', stop);
+        btn.addEventListener('mouseleave', stop);
+        btn.addEventListener('touchend', stop);
+      }
+
+      setupButton('fwd', 'fwd');
+      setupButton('left', 'left');
+      setupButton('right', 'right');
+      setupButton('bkw', 'bkw');
+      setupButton('stop', 'stop');
+
+      // Keyboard support (Arrow keys + WASD)
+      const keyMap = {
+        ArrowUp: 'fwd',
+        ArrowDown: 'bkw',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+        w: 'fwd',
+        a: 'left',
+        s: 'bkw',
+        d: 'right',
+        ' ': 'stop',
+      };
+
+      let activeKey = null;
+
+      window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (!activeKey && keyMap[key]) {
+          activeKey = key;
+          const cmd = keyMap[key];
+          sendCommand(cmd);
+
+          const btn = document.getElementById(cmd);
+          if (btn) btn.classList.add('pressed');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        if (keyMap[key]) {
+          const cmd = keyMap[key];
+          sendCommand('stop');
+          activeKey = null;
+
+          const btn = document.getElementById(cmd);
+          if (btn) btn.classList.remove('pressed');
+        }
+      });
+    </script>
+  </body>
+</html>
