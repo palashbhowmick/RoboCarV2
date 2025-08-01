@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Palash's RoboCar v2</title>
     <style>
       body {
         text-align: center;
@@ -34,32 +35,61 @@
         display: flex;
         justify-content: center;
       }
+      #ipConfig {
+        margin-bottom: 1em;
+      }
+      input {
+        padding: 6px 12px;
+        font-size: 1em;
+        width: 200px;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <h2>Palash's RoboCar v2</h2>
+
     <div id="controls">
       <div class="row">
         <button id="fwd">&#x2B06;</button>
-        <!-- Up -->
       </div>
       <div class="row">
         <button id="left">&#x2B05;</button>
-        <!-- Left -->
         <button id="stop">&#x25A0;</button>
-        <!-- Stop -->
         <button id="right">&#x27A1;</button>
-        <!-- Right -->
       </div>
       <div class="row">
         <button id="bkw">&#x2B07;</button>
-        <!-- Down -->
       </div>
+    </div>
+    <div id="ipConfig">
+      <label>
+        RoboCar IP:
+        <input type="text" id="espIp" placeholder="e.g. 192.168.0.162" />
+      </label>
     </div>
 
     <script>
+      const ipInput = document.getElementById('espIp');
+      const DEFAULT_IP = '192.168.0.162';
+
+      // Load saved IP or default
+      function getESPIP() {
+        return localStorage.getItem('esp_ip') || DEFAULT_IP;
+      }
+
+      // Save to localStorage on change
+      ipInput.addEventListener('input', () => {
+        localStorage.setItem('esp_ip', ipInput.value.trim());
+      });
+
+      // Set current input value on load
+      ipInput.value = getESPIP();
+
       function sendCommand(cmd) {
-        fetch('/?a=' + cmd).catch(console.error);
+        const ip = getESPIP();
+        const url = `http://${ip}/?a=${cmd}`;
+        fetch(url).catch((err) => console.error('Command error:', err));
       }
 
       function setupButton(id, command) {
@@ -88,16 +118,16 @@
       setupButton('bkw', 'bkw');
       setupButton('stop', 'stop');
 
-      // Keyboard support (Arrow keys + WASD)
+      // Keyboard support (WASD + Arrows)
       const keyMap = {
         ArrowUp: 'fwd',
-        ArrowDown: 'bkw',
-        ArrowLeft: 'left',
-        ArrowRight: 'right',
         w: 'fwd',
+        ArrowLeft: 'left',
         a: 'left',
-        s: 'bkw',
+        ArrowRight: 'right',
         d: 'right',
+        ArrowDown: 'bkw',
+        s: 'bkw',
         ' ': 'stop',
       };
 
@@ -109,7 +139,6 @@
           activeKey = key;
           const cmd = keyMap[key];
           sendCommand(cmd);
-
           const btn = document.getElementById(cmd);
           if (btn) btn.classList.add('pressed');
         }
@@ -121,7 +150,6 @@
           const cmd = keyMap[key];
           sendCommand('stop');
           activeKey = null;
-
           const btn = document.getElementById(cmd);
           if (btn) btn.classList.remove('pressed');
         }
